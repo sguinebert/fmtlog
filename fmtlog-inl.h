@@ -129,7 +129,7 @@ public:
       "t"_a = "thread name", "F"_a = "", "f"_a = "", "e"_a = "", "S"_a = "", "M"_a = "", "H"_a = "",
       "l"_a = fmtlog::LogLevel(), "s"_a = "fmtlog.cc:123", "g"_a = "/home/raomeng/fmtlog/fmtlog.cc:123", "Ymd"_a = "",
       "HMS"_a = "", "HMSe"_a = "", "HMSf"_a = "", "HMSF"_a = "", "YmdHMS"_a = "", "YmdHMSe"_a = "", "YmdHMSf"_a = "",
-      "YmdHMSF"_a = "");
+      "YmdHMSF"_a = "", "p"_a = "/");
     shouldDeallocateHeader = headerPattern.data() != pattern;
 
     setArg<0>(fmt::string_view(weekdayName.s, 3));
@@ -157,6 +157,7 @@ public:
     setArg<22>(fmt::string_view(year.s, 23));   // YmdHMSe
     setArg<23>(fmt::string_view(year.s, 26));   // YmdHMSf
     setArg<24>(fmt::string_view(year.s, 29));   // YmdHMSF
+    setArg<25>(fmt::string_view());   // url path arg
   }
 
   class ThreadBufferDestroyer
@@ -167,9 +168,14 @@ public:
     void threadBufferCreated() {}
 
     ~ThreadBufferDestroyer() {
+      fmtlog::poll(true); //purge before delete
       if (fmtlog::threadBuffer != nullptr) {
         fmtlog::threadBuffer->shouldDeallocate = true;
         fmtlog::threadBuffer = nullptr;
+      }
+      if(fmtlog::pathBuffer != nullptr) {
+          fmtlog::pathBuffer->shouldDeallocate = true;
+          fmtlog::pathBuffer = nullptr;
       }
     }
   };
@@ -288,6 +294,8 @@ public:
   void preallocate() {
     if (fmtlog::threadBuffer) return;
     fmtlog::threadBuffer = new fmtlog::ThreadBuffer();
+    fmtlog::pathBuffer = new fmtlog::ThreadBuffer();
+    fmtlog::pathBuffer->nameSize = 10;
 #ifdef _WIN32
     uint32_t tid = static_cast<uint32_t>(::GetCurrentThreadId());
 #else
@@ -352,8 +360,9 @@ public:
     if (thr.joinable()) thr.join();
   }
 
-  void handleLog(fmt::string_view threadName, const fmtlog::SPSCVarQueueOPT::MsgHeader* header) {
+  void handleLog(fmt::string_view threadName, fmt::string_view pathName, const fmtlog::SPSCVarQueueOPT::MsgHeader* header) {
     setArgVal<6>(threadName);
+    setArgVal<25>(pathName);
     StaticLogInfo& info = bgLogInfos[header->logId];
     const char* data = (const char*)(header + 1);
     const char* end = (const char*)header + header->size;
@@ -461,7 +470,7 @@ public:
       auto h = bgThreadBuffers[0].header;
       if (!h || h->logId >= bgLogInfos.size() || *(int64_t*)(h + 1) >= tsc) break;
       auto tb = bgThreadBuffers[0].tb;
-      handleLog(fmt::string_view(tb->name, tb->nameSize), h);
+      handleLog(fmt::string_view(tb->name, tb->nameSize), fmt::string_view(fmtlog::pathBuffer->name, fmtlog::pathBuffer->nameSize), h);
       tb->varq.pop();
       bgThreadBuffers[0].header = tb->varq.front();
       adjustHeap(0);
@@ -600,6 +609,12 @@ template<int _>
 void fmtlogT<_>::setThreadName(const char* name) FMT_NOEXCEPT {
   preallocate();
   threadBuffer->nameSize = fmt::format_to_n(threadBuffer->name, sizeof(fmtlog::threadBuffer->name), "{}", name).size;
+}
+
+template<int _>
+void fmtlogT<_>::setPathName(const char* name) noexcept {
+  preallocate();
+  pathBuffer->nameSize = fmt::format_to_n(pathBuffer->name, sizeof(fmtlog::pathBuffer->name), "{}", name).size;
 }
 
 template<int _>

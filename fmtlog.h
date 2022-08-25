@@ -151,6 +151,9 @@ public:
   // Set a name for current thread, it'll be shown in {t} part in header pattern
   static void setThreadName(const char* name) FMT_NOEXCEPT;
 
+  // Set a name for current url path, it'll be shown in {p} part in header pattern
+  static void setPathName(const char* name) FMT_NOEXCEPT;
+
   // Set current log level, lower level log msgs will be discarded
   static inline void setLogLevel(LogLevel logLevel) FMT_NOEXCEPT;
 
@@ -388,6 +391,7 @@ public:
 
   volatile LogLevel currentLogLevel;
   static FAST_THREAD_LOCAL ThreadBuffer* threadBuffer;
+  static FAST_THREAD_LOCAL ThreadBuffer* pathBuffer;
 
   template<typename Arg>
   static inline constexpr bool isNamedArg() {
@@ -720,6 +724,9 @@ using fmtlog = fmtlogT<>;
 
 template<int _>
 FAST_THREAD_LOCAL typename fmtlogT<_>::ThreadBuffer* fmtlogT<_>::threadBuffer;
+
+template<int _>
+FAST_THREAD_LOCAL typename fmtlogT<_>::ThreadBuffer* fmtlogT<_>::pathBuffer;
 
 template<int __ = 0>
 struct fmtlogWrapper
