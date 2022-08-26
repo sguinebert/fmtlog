@@ -390,7 +390,7 @@ public:
     hour.fromi(h);
     setArgVal<14>(info.getBase());
     setArgVal<15>(info.getLocation());
-    logLevel = (const char*)"DBG INF WRN ERR OFF" + (info.logLevel << 2);
+    logLevel = (const char*)"DBG INF SEC WRN ERR OFF" + (info.logLevel << 2);
 
     size_t headerPos = membuf.size();
     fmtlog::vformat_to(membuf, headerPattern, fmt::basic_format_args(args.data(), parttenArgSize));

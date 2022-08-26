@@ -48,9 +48,10 @@ SOFTWARE.
 
 #define FMTLOG_LEVEL_DBG 0
 #define FMTLOG_LEVEL_INF 1
-#define FMTLOG_LEVEL_WRN 2
-#define FMTLOG_LEVEL_ERR 3
-#define FMTLOG_LEVEL_OFF 4
+#define FMTLOG_LEVEL_SEC 2
+#define FMTLOG_LEVEL_WRN 3
+#define FMTLOG_LEVEL_ERR 4
+#define FMTLOG_LEVEL_OFF 5
 
 // define FMTLOG_ACTIVE_LEVEL to turn off low log level in compile time
 #ifndef FMTLOG_ACTIVE_LEVEL
@@ -802,6 +803,16 @@ inline bool fmtlogT<_>::checkLogLevel(LogLevel logLevel) FMT_NOEXCEPT {
 #define logi(format, ...) (void)0
 #define logio(format, ...) (void)0
 #define logil(min_interval, format, ...) (void)0
+#endif
+
+#if FMTLOG_ACTIVE_LEVEL <= FMTLOG_LEVEL_SEC
+#define logs(format, ...) FMTLOG(fmtlog::SEC, format, ##__VA_ARGS__)
+#define logso(format, ...) FMTLOG_ONCE(fmtlog::SEC, format, ##__VA_ARGS__)
+#define logsl(min_interval, format, ...) FMTLOG_LIMIT(min_interval, fmtlog::SEC, format, ##__VA_ARGS__)
+#else
+#define logs(format, ...) (void)0
+#define logso(format, ...) (void)0
+#define logsl(min_interval, format, ...) (void)0
 #endif
 
 #if FMTLOG_ACTIVE_LEVEL <= FMTLOG_LEVEL_WRN
