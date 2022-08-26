@@ -100,11 +100,12 @@ public:
     fmtlogWrapper<>::impl.init();
     resetDate();
     fmtlog::setLogFile(stdout);
-    setHeaderPattern("{HMSf} {s:<16} {l}[{t:<6}] ");
+    setHeaderPattern("[{YmdHMSe}] {t} [{l}] {s} : ");
     logInfos.reserve(32);
     bgLogInfos.reserve(128);
     bgLogInfos.emplace_back(nullptr, nullptr, fmtlog::DBG, fmt::string_view());
     bgLogInfos.emplace_back(nullptr, nullptr, fmtlog::INF, fmt::string_view());
+    bgLogInfos.emplace_back(nullptr, nullptr, fmtlog::SEC, fmt::string_view());
     bgLogInfos.emplace_back(nullptr, nullptr, fmtlog::WRN, fmt::string_view());
     bgLogInfos.emplace_back(nullptr, nullptr, fmtlog::ERR, fmt::string_view());
     threadBuffers.reserve(8);

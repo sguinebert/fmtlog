@@ -58,6 +58,10 @@ SOFTWARE.
 #define FMTLOG_ACTIVE_LEVEL FMTLOG_LEVEL_DBG
 #endif
 
+#ifndef FMT_NOEXCEPT
+#define FMT_NOEXCEPT noexcept
+#endif
+
 namespace fmtlogdetail {
 template<typename Arg>
 struct UnrefPtr : std::false_type
@@ -93,6 +97,7 @@ public:
   {
     DBG = 0,
     INF,
+    SEC,
     WRN,
     ERR,
     OFF
